@@ -126,9 +126,9 @@ The process of building both images are outlined below. But please remember that
 %%{init: { 'themeVariables': { 'fontSize': '10px' }}}%%
 flowchart TB
 
-subgraph GRAPH_TVAPP ["Build thetvapp:latest"]
+subgraph GRAPH_TVAPP ["Build tvapp2:latest"]
     direction TB
-    obj_step10["`&gt; git clone https://git.binaryninja.net/pub_projects/tvapp2.git`"]
+    obj_step10["`&gt; git clone git.binaryninja.net/pub_projects/tvapp2.git`"]
     obj_step11["`**Dockerfile
      Dockerfile.aarch64**`"]
     obj_step12["`&gt; docker build &bsol;
@@ -138,7 +138,7 @@ subgraph GRAPH_TVAPP ["Build thetvapp:latest"]
     -t tvapp:1.0.0-amd64 &bsol;
     -f Dockerfile . &bsol;`"]
     obj_step13["`Download **alpine-base** from branch **docker/alpine-base**`"]
-    obj_step14["`New Image: **thetvapp:latest**`"]
+    obj_step14["`New Image: **tvapp2:latest**`"]
 
     style obj_step10 text-align:center,stroke-width:1px,stroke:#555
     style obj_step11 text-align:left,stroke-width:1px,stroke:#555
