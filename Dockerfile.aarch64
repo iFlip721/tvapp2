@@ -59,6 +59,7 @@ RUN \
     apk add --no-cache \
         wget \
         bash \
+        nano \
         npm \
         openssl
 
@@ -67,12 +68,6 @@ RUN \
 # #
 
 COPY docker-entrypoint.sh /usr/local/bin/
-
-# #
-#   entrypoint
-# #
-
-#ENTRYPOINT ["docker-entrypoint.sh"]
 
 # #
 #   Set work directory

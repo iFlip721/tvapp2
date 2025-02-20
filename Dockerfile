@@ -60,12 +60,11 @@ ENV YARN_VERSION=1.22.22
 #   Install
 # #
 
-#RUN echo -e "http://nl.alpinelinux.org/alpine/v3.20/main\nhttp://nl.alpinelinux.org/alpine/v3.20/community" > /etc/apk/repositories
-#RUN sed -ie "s/https/http/g" /etc/apk/repositories
 RUN \
     apk add --no-cache \
         wget \
         bash \
+        nano \
         npm \
         openssl
 
@@ -76,25 +75,39 @@ RUN \
 COPY docker-entrypoint.sh /usr/local/bin/
 
 # #
-#   entrypoint
-# #
-
-#ENTRYPOINT ["docker-entrypoint.sh"]
-
-CMD ["node"]
-
-# #
 #   Set work directory
 # #
 
 WORKDIR /usr/src/app
-#WORKDIR /config/www
+
+# #
+#   copy node package.json to workdir
+# #
 
 COPY package*.json ./
-RUN npm install
+
+# #
+#   install node (production)
+# #
+
+RUN npm install install --only=production
 
 # #
 #   Add local files
+# #
+
+COPY . .
+# COPY node_modules/ package.json package-lock.json formatted.dat index.js ./
+
+# #
+#   when copying with the command above, all files in root folder will be copied. 
+# #
+
+RUN rm -rf ./root
+RUN rm ./Dockerfile ./Dockerfile.aarch64 docker-entrypoint.sh
+
+# #
+#   copy s6-overlays root to image root
 # #
 
 COPY root/ /
@@ -110,4 +123,4 @@ EXPOSE ${PORT_HTTP}/tcp
 #   and then keep the container running. Hacky, but whatever.
 # #
 
-# CMD ["sh", "-c", "/run.sh ; /task.sh ; tail -f /dev/null"]
+CMD ["sh", "-c", "npm start"]
