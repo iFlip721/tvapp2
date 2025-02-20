@@ -1,0 +1,32 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+PUID=${PUID:-911}
+PGID=${PGID:-911}
+
+if [[ -z ${TVAPP_READ_ONLY_FS} ]] && [[ -z ${TVAPP_NON_ROOT_USER} ]]; then
+    groupmod -o -g "$PGID" dockerx
+    usermod -o -u "$PUID" dockerx
+fi
+
+if { [[ -z ${TVAPP_READ_ONLY_FS} ]] && [[ -z ${TVAPP_NON_ROOT_USER} ]]; } || [[ ! ${TVAPP_FIRST_PARTY} = "true" ]]; then
+    cat /etc/s6-overlay/s6-rc.d/init-adduser/branding
+else
+    cat /run/branding
+fi
+
+if [[ -z ${TVAPP_NON_ROOT_USER} ]]; then
+echo ""
+echo "        User:Group              $(id -u dockerx):$(id -g dockerx)"
+else
+echo "        User:Group              $(stat /run -c %u):$(stat /run -c %g)"
+fi
+echo "        (Ports) HTTP/HTTPS      $(echo $PORT_HTTP)"
+echo ""
+echo '──────────────────────────────────────────────────────────────────────────────────────────'
+
+if [[ -z ${TVAPP_READ_ONLY_FS} ]] && [[ -z ${TVAPP_NON_ROOT_USER} ]]; then
+    aetherxown dockerx:dockerx /app
+    aetherxown dockerx:dockerx /config
+    aetherxown dockerx:dockerx /defaults
+fi

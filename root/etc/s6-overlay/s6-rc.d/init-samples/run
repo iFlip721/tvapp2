@@ -1,0 +1,11 @@
+#!/usr/bin/with-contenv bash
+# shellcheck shell=bash
+
+# #
+#   @project        tvapp2
+#   @usage          docker image which allows you to download a m3u playlist and EPG guide data for the
+#                   IPTV service TheTvApp.
+#   @file           nginx.conf.sample
+#   @repo           https://github.com/Aetherinox/docker-base-alpine
+#                   https://git.binaryninja.net/pub_projects/tvapp2
+# #
