@@ -24,7 +24,9 @@
 <br />
 
 - [About](#about)
+  - [How It Works](#how-it-works)
 - [Building `tvapp` Image](#building-tvapp-image)
+- [How It Works](#how-it-works-1)
   - [Before Building](#before-building)
     - [LF over CRLF](#lf-over-crlf)
     - [Set `+x / 0755` Permissions](#set-x--0755-permissions)
@@ -47,8 +49,8 @@
   - [docker-compose.yml](#docker-composeyml)
 - [Extra Notes](#extra-notes)
   - [Custom Docker Image Scripts](#custom-docker-image-scripts)
-- [Dedication](#dedication)
-- [Contributors ✨](#contributors-)
+- [🏆 Dedication](#-dedication)
+- [✨ Contributors](#-contributors)
 
 <br />
 
@@ -58,8 +60,31 @@
 
 ## About
 
+**TVApp2** is a docker image which allows you to download M3U playlist and EPG guide data which can be plugged into your IPTV applications such as Jellyfin, Plex, and Emby. It is a revision of the original app by dtankdempse which is no longer available. This app fetches data for:
+
+- TheTvApp
+- TVPass
+- MoveOnJoy
+- <sub>More coming soon</sub>
+
+<br />
+
+This project contains several repositories which all share the same code; use them as backups:
+
+- [https://github.com/iFlip721/tvapp2](https://github.com/iFlip721/tvapp2)
+- [https://github.com/Aetherinox/tvapp2](https://github.com/Aetherinox/tvapp2)
+- [https://git.binaryninja.net/pub_projects/tvapp2](https://git.binaryninja.net/pub_projects/tvapp2)
+
+<br />
+
+### How It Works
+
+<br />
+
 - TVApp2 makes fetch request to [tvapp2-externals](https://git.binaryninja.net/pub_projects/tvapp2-externals 'tvapp2-externals') making updates to external formats agnostic to pushing a new container image.
-- TVApp2 makes fetch request to [XMLTV-EPG](https://git.binaryninja.net/pub_projects/XMLTV-EPG 'XMLTV-EPG') making updates to EPG data based on customized channel ids. Channel ids are specific to each EPG record which makes obfusctaing channel ids difficult.
+- TVApp2 makes fetch request to [XMLTV-EPG](https://git.binaryninja.net/pub_projects/XMLTV-EPG 'XMLTV-EPG') making updates to EPG data based on customized channel ids. Channel ids are specific to each EPG record which makes obfuscating channel ids difficult.
+
+<br />
 
 ```mermaid
 graph TD
@@ -77,12 +102,88 @@ C(XMLTV-EPG) ---> E{Pull Dynamic EPG}
 
 ## Building `tvapp` Image
 
-These instructions outline how to build your own tvapp2 docker image. When building your images with the commands provided below, ensure you create two sets of tags:
+These instructions outline how the TVApp2 docker image is set up, and how to build your own TVApp2 docker image.
+
+<br />
+
+## How It Works
+
+The TVApp2 application requires one dependency docker image, which is utilized as the base image and contains Alpine linux. You may use the pre-compiled docker image provided by us on Github, or you may choose to build your own. The base alpine image is available at:
+
+- https://github.com/Aetherinox/docker-base-alpine
+
+<br />
+
+This base Alpine image contains [s6-overlay](https://github.com/just-containers/s6-overlay) and comes with several features such as plugins, service management, migration tools, etc.
+
+<br />
+
+The process of building both images are outlined below. But please remember that you do not need to build the base Alpine image; we already provide it at: https://github.com/Aetherinox/docker-base-alpine/pkgs/container/alpine-base
+
+<br />
+
+```mermaid
+%%{init: { 'themeVariables': { 'fontSize': '10px' }}}%%
+flowchart TB
+
+subgraph GRAPH_TVAPP ["Build thetvapp:latest"]
+    direction TB
+    obj_step10["`&gt; git clone https://git.binaryninja.net/pub_projects/tvapp2.git`"]
+    obj_step11["`**Dockerfile
+     Dockerfile.aarch64**`"]
+    obj_step12["`&gt; docker build &bsol;
+    --build-arg VERSION=1.0.0 &bsol;
+    --build-arg BUILD_DATE=20250218 &bsol;
+    -t tvapp:latest &bsol;
+    -t tvapp:1.0.0-amd64 &bsol;
+    -f Dockerfile . &bsol;`"]
+    obj_step13["`Download **alpine-base** from branch **docker/alpine-base**`"]
+    obj_step14["`New Image: **thetvapp:latest**`"]
+
+    style obj_step10 text-align:center,stroke-width:1px,stroke:#555
+    style obj_step11 text-align:left,stroke-width:1px,stroke:#555
+    style obj_step12 text-align:left,stroke-width:1px,stroke:#555
+    style obj_step13 text-align:left,stroke-width:1px,stroke:#555
+end
+
+style GRAPH_TVAPP text-align:center,stroke-width:1px,stroke:transparent,fill:transparent
+
+subgraph GRAPH_ALPINE["Build alpine-base:latest Image"]
+direction TB
+    obj_step20["`&gt; git clone -b docker/alpine-base github.com/Aetherinox/docker-base-alpine.git`"]
+    obj_step21["`**Dockerfile
+     Dockerfile.aarch64**`"]
+    obj_step22["`&gt; docker build &bsol;
+    --build-arg VERSION=3.20 &bsol;
+    --build-arg BUILD_DATE=20250218 &bsol;
+    -t docker-alpine-base:latest &bsol;
+    -t docker-alpine-base:3.20-amd64 &bsol;
+    -f Dockerfile . &bsol;`"]
+    obj_step23["`Download files from branch **docker/core**`"]
+    obj_step24["`New Image: **alpine-base:latest**`"]
+
+    style obj_step20 text-align:center,stroke-width:1px,stroke:#555
+    style obj_step21 text-align:left,stroke-width:1px,stroke:#555
+    style obj_step22 text-align:left,stroke-width:1px,stroke:#555
+    style obj_step23 text-align:left,stroke-width:1px,stroke:#555
+end
+
+style GRAPH_ALPINE text-align:center,stroke-width:1px,stroke:transparent,fill:transparent
+
+GRAPH_TVAPP --> obj_step10 --> obj_step11 --> obj_step12 --> obj_step13 --> obj_step14
+GRAPH_ALPINE --> obj_step20 --> obj_step21 --> obj_step22 --> obj_step23 --> obj_step24
+```
+
+<br />
+
+When building your TVApp2 images with the commands provided below, ensure you create two sets of tags:
 
 | Architecture | Dockerfile           | Tags                                                                    |
 | ------------ | -------------------- | ----------------------------------------------------------------------- |
 | `amd64`      | `Dockerfile`         | `tvapp2:latest` <br /> `tvapp2:1.0.0` <br /> `tvapp2:1.0.0-amd64` |
 | `arm64`      | `Dockerfile.aarch64` | `tvapp2:1.0.0-arm64`                                                  |
+
+<br />
 
 The `amd64` arch gets a few extra tags because it should be the default image people clone. 
 
@@ -90,7 +191,14 @@ The `amd64` arch gets a few extra tags because it should be the default image pe
 
 ### Before Building
 
-Prior to building the  docker image, you **must** ensure the following conditions are met. If the below tasks are not performed, your docker container will throw the following errors when started:
+Prior to building the  docker image, you **must** ensure the sections below are completed.
+
+- [LF over CRLF](#lf-over-crlf)
+- [Set +x / 0755 Permissions](#set-x--0755-permissions)
+
+<br />
+
+ If the listed tasks above are not performed, your docker container will throw the following errors when started:
 
 - `Failed to open apk database: Permission denied`
 - `s6-rc: warning: unable to start service init-adduser: command exited 127`
@@ -522,9 +630,23 @@ The `🔀 iflip721/tvapp2` image already contains a custom script called `📄 /
 
 <br />
 
-## Dedication
+## 🏆 Dedication
 
-This repository and this project serves in memory of the developer [dtankdemp](https://hub.docker.com/r/dtankdemp). His work lives on in this project, and while a lot of it has changed, it all started because of him.
+This repository and this project serves in memory of the developer [dtankdempse](https://hub.docker.com/r/dtankdemp). His work lives on in this project, and while a lot of it has changed, it all started because of him.
+
+<br />
+
+<div align="center">
+    <table>
+        <tbody>
+            <tr>
+                <td align="center" valign="top"><a href="https://github.com/dtankdempse">
+                    <img src="https://avatars.githubusercontent.com/u/175421607?v=4?s=40" width="80px;" alt="dtankdempse"/><br /><sub><b>dtankdempse</b></sub></a><br /><a href="https://github.com/iFlip721/tvapp2/commits?author=dtankdempse" title="Code">💻</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
 <br />
 
@@ -532,7 +654,7 @@ This repository and this project serves in memory of the developer [dtankdemp](h
 
 <br />
 
-## Contributors ✨
+## ✨ Contributors
 We are always looking for contributors. If you feel that you can provide something useful to Gistr, then we'd love to review your suggestion. Before submitting your contribution, please review the following resources:
 
 - [Pull Request Procedure](.github/PULL_REQUEST_TEMPLATE.md)
@@ -565,13 +687,13 @@ The following people have helped get this project going:
 <table>
     <tbody>
         <tr>
-            <td align="center" valign="top"><a href="https://gitlab.com/Aetherinox">
+            <td align="center" valign="top"><a href="https://github.com/Aetherinox">
                 <img src="https://avatars.githubusercontent.com/u/118329232?v=4?s=40" width="80px;" alt="Aetherinox"/><br /><sub><b>Aetherinox</b></sub></a><br /><a href="https://github.com/iFlip721/tvapp2/commits?author=Aetherinox" title="Code">💻</a>
             </td>
-            <td align="center" valign="top"><a href="https://gitlab.com/iFlip721">
+            <td align="center" valign="top"><a href="https://github.com/iFlip721">
                 <img src="https://avatars.githubusercontent.com/u/28721588?v=4" width="80px;" alt="iFlip721"/><br /><sub><b>iFlip721</b></sub></a><br /><a href="https://github.com/iFlip721/tvapp2/commits?author=iFlip721" title="Code">💻</a>
             </td>
-            <td align="center" valign="top"><a href="https://gitlab.com/Nvmdfth">
+            <td align="center" valign="top"><a href="https://github.com/Nvmdfth">
                 <img src="https://avatars.githubusercontent.com/u/32874812?v=4" width="80px;" alt="Nvmdfth"/><br /><sub><b>Optx</b></sub></a><br /><a href="https://github.com/iFlip721/tvapp2/commits?author=Nvmdfth" title="Code">💻</a>
             </td>
         </tr>
